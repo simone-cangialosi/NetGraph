@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.simonecangialosi</groupId>
+    <artifactId>netgraph</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Calculate the position of connected graphs with non-directional edges to avoid overlapping.</description>
+    <url>http://github.com/simone-cangialosi/netgraph</url>
+
+    <developers>
+        <developer>
+            <name>Simone Cangialosi</name>
+            <email>sm.cangialosi@gmail.com</email>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.version>1.3.31</kotlin.version>
+        <dokka.version>0.9.16</dokka.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <name>JCenter</name>
+            <url>https://jcenter.bintray.com/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jcenter</id>
+            <name>JCenter</name>
+            <url>https://jcenter.bintray.com/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <configuration>
+                    <jvmTarget>1.8</jvmTarget>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>${dokka.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>dokka</goal>
+                            <goal>javadoc</goal>
+                            <goal>javadocJar</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <file>packages.md</file>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+    </dependencies>
+</project>
