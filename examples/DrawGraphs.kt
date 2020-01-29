@@ -9,6 +9,7 @@ import com.simonecangialosi.netgraph.Graph
 import com.simonecangialosi.netgraph.Node
 import helpers.Plot
 import java.awt.Color
+import kotlin.math.abs
 
 /**
  * Create graphs from links between nodes, then print their coordinates and plot them into a PNG image.
@@ -72,14 +73,19 @@ private fun getPlotLines(links: Map<Int, Set<Int>>, nodesMap: Map<Int, Node>): L
  */
 private fun drawGraphs(plotSeries: List<Plot.Data>) {
 
+  val maxRadius: Double =
+    plotSeries.map { (0 until it.size()).map { i -> maxOf(abs(it.x(i)), abs(it.y(i))) }.max()!! }.max()!! + 50.0
+
+  val plot = Plot.plot(null)
+    .xAxis("x", Plot.axisOpts().range(-maxRadius, maxRadius))
+    .yAxis("y", Plot.axisOpts().range(-maxRadius, maxRadius))
+
   val seriesOpt = Plot.seriesOpts()
     .marker(Plot.Marker.CIRCLE)
     .markerColor(Color.BLACK)
     .markerSize(10)
     .color(Color.BLACK)
     .lineWidth(1)
-
-  val plot = Plot.plot(null)
 
   plotSeries.forEachIndexed { i, dataSeries -> plot.series(i.toString(), dataSeries, seriesOpt) }
 
