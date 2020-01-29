@@ -7,8 +7,6 @@
 
 package com.simonecangialosi.netgraph
 
-import kotlin.math.min
-
 /**
  * A connected graph that places its nodes in the Cartesian Coordinate System avoiding overlapping as much as possible.
  *
@@ -85,18 +83,13 @@ class Graph(val nodes: Set<Node>) {
      */
     private fun position(graphs: List<Graph>) {
 
-      val groupSize = 6
       val sortedGraphs: List<Graph> = graphs.sortedByDescending { it.radius }
-      val numOfGroups: Int = Math.ceil((sortedGraphs.size - 1).toDouble() / groupSize).toInt() // except the first graph
       var radius: Double = sortedGraphs.first().radius
 
-      (0 until numOfGroups).forEach { k ->
-
-        val start: Int = 1 + k * groupSize
-        val end: Int = min(sortedGraphs.size, start + groupSize)
-        val group: List<Graph> = sortedGraphs.subList(start, end)
+      sortedGraphs.takeLast(sortedGraphs.size - 1).chunked(6).forEach { group ->
 
         var angle = 0.0
+
         radius += group.first().radius
 
         group.forEach { graph ->
