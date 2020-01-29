@@ -115,6 +115,16 @@ class Graph(val nodes: Set<Node>) {
     private set
 
   /**
+   * The edges of the graph as pairs of adjacent nodes.
+   * Since the edges are bidirectional, each couple of nodes is present only once.
+   */
+  val edges: Set<Pair<Node, Node>> = this.nodes.flatMap { from ->
+    from.children.map { to ->
+      sequenceOf(from, to).minBy { it.id }!! to sequenceOf(from, to).maxBy { it.id }!!
+    }
+  }.toSet()
+
+  /**
    * Set the nodes coordinates.
    */
   init {
@@ -136,11 +146,74 @@ class Graph(val nodes: Set<Node>) {
    * @param coords the destination of the graph
    */
   fun moveTo(coords: Coords) {
+    this.moveBy(delta = coords - this.center)
+  }
 
-    val delta: Coords = coords - this.center
+  /**
+   * Translate the whole graph by a delta defined by polar coordinates.
+   *
+   * @param angle the polar angle, in degrees
+   * @param distance the distance from the axis origin
+   */
+  fun moveBy(angle: Double, distance: Double) {
+    this.moveBy(delta = Coords.byPolar(angle = angle, distance = distance))
+  }
+
+  /**
+   * Translate the whole graph by a given delta.
+   *
+   * @param delta the delta of the movement
+   */
+  fun moveBy(delta: Coords) {
 
     this.nodes.forEach { it.coords += delta }
 
-    this.center = coords
+    this.center += delta
+  }
+
+  /**
+   * @param other another graph
+   *
+   * @return true if there is an overlapping with an edge of the given graph, otherwise false
+   */
+  fun overlaps(other: Graph): Boolean =
+    this.edges.any { edge1 ->
+      other.edges.any { edge2 ->
+        intersect(s1 = edge1.first.coords to edge1.second.coords, s2 = edge2.first.coords to edge2.second.coords)
+      }
+    }
+
+  /**
+   * @param s1 a segment, as a pair of its ends
+   * @param s2 a segment, as a pair of its ends
+   *
+   * @return true if there is an intersection between the given segments, otherwise false
+   */
+  private fun intersect(s1: Pair<Coords, Coords>, s2: Pair<Coords, Coords>): Boolean =
+    clockwiseRotation(s1.first, s1.second, s2.first) * clockwiseRotation(s1.first, s1.second, s2.second) <= 0 &&
+      clockwiseRotation(s2.first, s2.second, s1.first) * clockwiseRotation(s2.first, s2.second, s1.second) <= 0
+
+  /**
+   * Analyze the rotation when passing from a first point to a second and then a third.
+   *
+   * @param p0 the first point
+   * @param p1 the second point
+   * @param p2 the third point
+   *
+   * @return 1 if the the rotation is clockwise, -1 if it is counterclockwise, 0 if there is no rotation
+   */
+  private fun clockwiseRotation(p0: Coords, p1: Coords, p2: Coords): Int {
+
+    val dx1 = p1.x - p0.x
+    val dy1 = p1.y - p0.y
+    val dx2 = p2.x - p0.x
+    val dy2 = p2.y - p0.y
+
+    if (dx1 * dy2 > dy1 * dx2) return +1
+    if (dx1 * dy2 < dy1 * dx2) return -1
+    if ((dx1 * dx2 < 0) || (dy1 * dy2 < 0)) return -1
+    if ((dx1 * dx1 + dy1 * dy1) < (dx2 * dx2 + dy2 * dy2)) return +1
+
+    return 0
   }
 }
