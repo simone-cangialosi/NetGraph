@@ -36,7 +36,7 @@ class Graph(val nodes: Set<Node>) {
         groups.getOrPut(group.minBy { it.id }!!) { group }
       }
 
-      return groups.values.map { Graph(it) }.also { position(it) }
+      return groups.values.map { Graph(it) }.also { position(it); collapse(it) }
     }
 
     /**
@@ -98,6 +98,35 @@ class Graph(val nodes: Set<Node>) {
         }
 
         radius += group.first().radius
+      }
+    }
+
+    /**
+     * Bring graphs next to the axis center, with no overlapping between them.
+     * This operation is made by incremental steps, moving each graph by a predefined delta in direction of the axis
+     * origin.
+     *
+     * @param graphs a list of graphs
+     */
+    private fun collapse(graphs: List<Graph>) {
+
+      val deltaLength = 50.0
+      val maxIterations = 200
+      var i = 0
+
+      val sortedGraphs: List<Graph> = graphs.sortedBy { it.center.length }
+      val graphsPositioned: MutableList<Graph> = mutableListOf(sortedGraphs.first())
+
+      sortedGraphs.takeLast(graphs.size - 1).forEach { graph ->
+
+        val delta = Coords.byPolar(angle = graph.center.angle - 180, distance = deltaLength)
+
+        while (i++ < maxIterations && graphsPositioned.none { graph.overlaps(it) }) {
+          graph.moveBy(delta)
+        }
+
+        if (i < maxIterations)
+          graph.moveBy(Coords(0.0, 0.0) - delta * 4.0) // bring back by 4 steps in case of overlapping
       }
     }
   }
