@@ -7,6 +7,8 @@
 
 package com.simonecangialosi.netgraph
 
+import java.lang.Math.random
+
 /**
  * A connected graph that places its nodes in the Cartesian Coordinate System avoiding overlapping as much as possible.
  *
@@ -15,6 +17,17 @@ package com.simonecangialosi.netgraph
 class Graph(val nodes: Set<Node>) {
 
   companion object {
+
+    /**
+     * The length of the delta used to collapse the graphs to the center.
+     * At each step, each graph is moved by this distance in direction of the axis origin.
+     */
+    private const val DELTA_LENGTH = 50.0
+
+    /**
+     * The max number of steps to collapse the graphs to the center.
+     */
+    private const val MAX_ITERATIONS = 200
 
     /**
      * Build graphs from a map of links.
@@ -110,26 +123,96 @@ class Graph(val nodes: Set<Node>) {
      */
     private fun collapse(graphs: List<Graph>) {
 
-      val deltaLength = 50.0
-      val maxIterations = 200
-      var i = 0
-
       val sortedGraphs: List<Graph> = graphs.sortedBy { it.center.length }
-      val graphsPositioned: MutableList<Graph> = mutableListOf(sortedGraphs.first())
+      val bigGraphs: List<Graph> = sortedGraphs.filter { it.size > 1 }
+      val unaryGraphs: List<Graph> = sortedGraphs.filter { it.size == 1 }
 
-      sortedGraphs.takeLast(graphs.size - 1).forEach { graph ->
+      this.collapseBigGraphs(bigGraphs)
+      this.centerGraphs(bigGraphs)
 
-        val delta = Coords.byPolar(angle = graph.center.angle - 180, distance = deltaLength)
+      val coords: Sequence<Coords> = bigGraphs.asSequence().flatMap { it.nodes.asSequence() }.map { it.coords }
 
-        while (i++ < maxIterations && graphsPositioned.none { graph.overlaps(it) }) {
+      this.collapseUntilBounds(
+        graphs = unaryGraphs,
+        minCoords = Coords(x = coords.map { it.x }.min()!!, y = coords.map { it.y }.min()!!),
+        maxCoords = Coords(x = coords.map { it.x }.max()!!, y = coords.map { it.y }.max()!!))
+    }
+
+    /**
+     * Collapse the bigger graphs to the axis origin, avoiding overlapping.
+     *
+     * @param graphs the graphs with more than 1 node, sorted by descending size
+     */
+    private fun collapseBigGraphs(graphs: List<Graph>) {
+
+      val positionedGraphs: MutableList<Graph> = mutableListOf(graphs.first())
+
+      graphs.takeLast(graphs.size - 1).forEach { graph ->
+
+        var i = 0
+        val delta = Coords.byPolar(angle = graph.center.angle - 180, distance = DELTA_LENGTH)
+
+        while (i++ < MAX_ITERATIONS && positionedGraphs.none { graph.overlaps(it) })
+          graph.moveBy(delta)
+
+        if (i < MAX_ITERATIONS)
+          graph.moveBy(Coords(0.0, 0.0) - delta * 4.0) // bring back by 4 steps in case of overlapping
+
+        positionedGraphs.add(graph)
+      }
+    }
+
+    /**
+     * Translate graphs so that their middle point (the mean of the coordinates of all their nodes) is in the axis
+     * origin.
+     *
+     * @param graphs a list of graphs
+     */
+    private fun centerGraphs(graphs: List<Graph>) {
+
+      val nodes: Sequence<Node> = graphs.asSequence().flatMap { it.nodes.asSequence() }
+
+      val center = Coords(
+        x = (nodes.map { it.coords.x }.max()!! + nodes.map { it.coords.x }.min()!!) / 2.0,
+        y = (nodes.map { it.coords.y }.max()!! + nodes.map { it.coords.y }.min()!!) / 2.0)
+
+      val delta: Coords = Coords(0.0, 0.0) - center
+
+      graphs.forEach { it.moveBy(delta) }
+    }
+
+    /**
+     * Bring graphs next to the center, until they reach the given bounds.
+     *
+     * @param graphs the graphs with 1 node only
+     * @param minCoords the coordinates min that define the rectangular bounds
+     * @param maxCoords the coordinates max that define the rectangular bounds
+     */
+    private fun collapseUntilBounds(graphs: List<Graph>, minCoords: Coords, maxCoords: Coords) {
+
+      graphs.forEach { graph ->
+
+        var i = 0
+        val delta = Coords.byPolar(angle = graph.center.angle - 180, distance = DELTA_LENGTH)
+
+        while (i++ < MAX_ITERATIONS &&
+          (graph.center.x !in (minCoords.x .. maxCoords.x) || graph.center.y !in (minCoords.y .. maxCoords.y))
+        ) {
           graph.moveBy(delta)
         }
 
-        if (i < maxIterations)
-          graph.moveBy(Coords(0.0, 0.0) - delta * 4.0) // bring back by 4 steps in case of overlapping
+        if (i < MAX_ITERATIONS)
+          graph.moveBy(Coords(0.0, 0.0) - delta * 6.0) // bring back by 6 steps in case of overlapping
+
+        graph.moveBy(Coords(2 * DELTA_LENGTH * random(), 3 * DELTA_LENGTH * random())) // avoid overlapping
       }
     }
   }
+
+  /**
+   * The number of nodes of the graph.
+   */
+  val size = this.nodes.size
 
   /**
    * The max distance between the [center] and the coordinates of a node of the graph.
