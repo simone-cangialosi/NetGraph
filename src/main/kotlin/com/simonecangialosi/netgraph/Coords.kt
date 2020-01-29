@@ -65,6 +65,15 @@ data class Coords(val x: Double, val y: Double) {
   operator fun minus(other: Coords): Coords = Coords(x = this.x - other.x, y = this.y - other.y)
 
   /**
+   * Multiply this coordinates by a given factor.
+   *
+   * @param n the multiplication factor
+   *
+   * @return the result of the multiplication
+   */
+  operator fun times(n: Double): Coords = Coords(x = n * this.x, y = n * this.y)
+
+  /**
    * Move this point by a delta described by polar coordinates.
    *
    * @param angle the polar angle, in degrees
