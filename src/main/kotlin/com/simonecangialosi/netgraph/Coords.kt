@@ -44,7 +44,7 @@ data class Coords(val x: Double, val y: Double) {
   /**
    * The distance between this point and the axis origin.
    */
-  val length: Double = sqrt(this.x * this.x + this.y + this.y)
+  val length: Double = sqrt(this.x * this.x + this.y * this.y)
 
   /**
    * Add another point to this.
