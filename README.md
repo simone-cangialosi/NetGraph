@@ -1,4 +1,4 @@
-# NetGraph [![Build Status](https://travis-ci.org/simone-cangialosi/NetGraph.svg?branch=master)](https://travis-ci.org/simone-cangialosi/NetGraph)
+# NetGraph [![Maven Central](https://img.shields.io/maven-central/v/com.simonecangialosi/netgraph.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.simonecangialosi%22%20AND%20a:%22netgraph%22) [![Build Status](https://travis-ci.org/simone-cangialosi/NetGraph.svg?branch=master)](https://travis-ci.org/simone-cangialosi/NetGraph)
 
 Calculate the position of connected graphs with non-directional edges to avoid overlapping.
 
